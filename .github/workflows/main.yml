@@ -1,0 +1,49 @@
+name: CI para Testes de Software em C
+
+# Define quando o workflow será executado
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch: # Permite execução manual pelo GitHub Web
+
+jobs:
+  build_and_run_c_project:
+    # O ambiente de execução (máquina virtual Linux)
+    runs-on: ubuntu-latest
+    
+    steps:
+    
+    - name: 1. Checkout do Código (Baixar o Repositório)
+      # Ação padrão do GitHub para buscar o código
+      uses: actions/checkout@v4
+
+    - name: 2. Instalar Compilador C (GCC) e Ferramentas
+      # Instala o pacote build-essential, que inclui o compilador GCC
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential
+
+    - name: 3. Compilar o Projeto
+      # Compila o arquivo principal (CalcularIngressoZoologico.c) 
+      # e inclui as funções do cabeçalho (.h) para gerar o executável 'ingresso_zoo'
+      run: |
+        # O GCC compila o arquivo .c. Ele encontrará as funções no .h automaticamente.
+        gcc CalcularIngressoZoologico.c -o ingresso_zoo
+
+    - name: 4. Executar os Testes (Simulação de Entrada)
+      # Como este é um programa interativo (usa scanf), precisamos SIMULAR as entradas.
+      # Este comando executa o programa e fornece entradas de teste via 'echo'.
+      # Teste: 2 ingressos, idades 10 (R$10.00) e 65 (R$15.00). Total: R$25.00.
+      run: |
+        echo -e "2\n10\n65\n" | ./ingresso_zoo
+        
+        # Nota: O código C original contém 'getchar()' no final que pode ser 
+        # problemático no GitHub Actions. O uso do 'echo -e' é a forma padrão de 
+        # automatizar programas interativos. Se o professor exigir o uso de 
+        # uma ferramenta de teste específica (ex: CUnit), este passo deve ser ajustado.
+
+    - name: 5. Conclusão do Job
+      if: success()
+      run: echo "O Programa C foi compilado e executado com sucesso!"
